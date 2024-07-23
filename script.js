@@ -3,10 +3,10 @@
 // Game:
     // Track the game's state - Who won/loss, Whose turn it is
 
-    function createGameController(playerOne, playerTwo) {
+    // We only need one gameboard. We'll use an IIFE.
+    const GameController = (function (playerOne, playerTwo) {
 
-        // We need access to the GameBoard object so we can retrieve its state. We only need a single game controller and game board (IIFE).
-        const gameBoard = createGameBoard();
+        // Create Players
 
 
         // Store player obects within a dictionary.
@@ -25,6 +25,7 @@
             return activePlayer;
         }
 
+        // Function that initiates a turn.
         const playTurn = () => {
             console.log(`It's now ${activePlayer.player.name}'s turn.`);
 
@@ -32,24 +33,36 @@
             let column = prompt("Enter column");
 
         // Need to check if space is already occupied.
-            while(gameBoard.getQuadrant(row, column) != null) {
+            while(GameBoard.getQuadrant(row, column) != null) {
                 console.log("That spot is already taken.");
                 row = prompt("Please enter a row.");
                 column = prompt("Please enter a column.");
             }
 
-            gameBoard.setQuadrant(row, column, activePlayer.marker);
+            GameBoard.setQuadrant(row, column, activePlayer.marker);
+            // Check for a winner here.
+            checkWinTie();
             setActivePlayer();
-            gameBoard.displayBoard();
+            GameBoard.displayBoard();
+        }
+
+        // Check for a winner or a tie.
+        const checkWinTie = () => {
+            console.log(GameBoard.getBoard());
+
+            // NOTE: The return keyword must be included with curly braces in an arrow function. Returns undefined if no curly braces. Braces and return keyword not needed with one statement.
+            GameBoard.getBoard().forEach((row) => {if(row.every(element => element == activePlayer.marker))
+            {console.log("Win")};
+            });
         }
 
         return { playTurn };
-    }
+    })(createPlayer(prompt("Please enter your name: ", "Player 1" )), createPlayer(prompt("Please enter your name: ", "Player 2" )));
 
 // Gameboard:
     // Hold and keep record of spaces - If a space is occupied, then that space cannot be overidden. Responsible for drawing itself.
 
-function createGameBoard() {
+const GameBoard = (function () {
     // A tic tac toe board can be represented as three rows and three comlumns.
     // Create Board with arrays. Each array inside of the main array represents a row and each of the elements in those arrays are the columns.
     const board = [[null, null, null], [null, null, null], [null, null, null]];
@@ -77,15 +90,25 @@ function createGameBoard() {
         }
     }
 
-    return { setQuadrant, getQuadrant, getBoard, displayBoard };
+    // Board needs to have a way to reset itself for a new game.
 
-}
+    const clearBoard = () => {
+        board.map((row) => {
+            // Fill every space of the inner arrays with null.
+            row.fill(null);
+        });
+    }
+
+    return { setQuadrant, getQuadrant, getBoard, displayBoard, clearBoard };
+
+})();
+
 // Player:
     // Keeps details for each player - Each person has either an 'X' or 'O' marker. We can use Player 1 and Player 2 for the player names.
 
 function createPlayer(name) {
 
+    // let name = prompt("Please enter your name: ", "Player" )
+
     return { name };
 }
-
-const game = createGameController(createPlayer("Rickey"), createPlayer("Jack"));
