@@ -143,6 +143,7 @@ function DOMController() {
         rowElement.setAttribute("class","row");
         for(const marker of row){
             const markerElement = document.createElement("div");
+            markerElement.setAttribute("class","rowText");
             markerElement.innerText = marker;
             rowElement.appendChild(markerElement);
         }
