@@ -50,10 +50,32 @@
         const checkWinTie = () => {
             console.log(GameBoard.getBoard());
 
-            // NOTE: The return keyword must be included with curly braces in an arrow function. Returns undefined if no curly braces. Braces and return keyword not needed with one statement.
-            GameBoard.getBoard().forEach((row) => {if(row.every(element => element == activePlayer.marker))
-            {console.log("Win")};
+            // NOTE: The return keyword must be included with curly braces in an arrow function. Returns undefined if return keyword is not included with curly braces. Braces and return keyword not needed with one statement.
+            // Iterates through each row, checking to see if all marks are either "O" or "X." Checks horizontally.
+            GameBoard.getBoard().forEach((row) => {if(row.every(element => element == activePlayer.marker)) {
+                console.log("Win");
+                return;
+                }
             });
+
+            // Need to check if indices of each row contain the same marker: board[0][0] == board[1][0] == board[2][0]. Checks vertically.
+            GameBoard.getBoard().keys().forEach((key) => {if(GameBoard.getBoard().map((row) => (row[key])).every((marker) => marker == activePlayer.marker)) {
+                console.log("Win");
+                return;
+                }
+            });
+
+            // Need to check diagonally.
+            if(GameBoard.getBoard().keys().map((key) => GameBoard.getBoard()[key][key]).every((marker) => marker == activePlayer.marker) || GameBoard.getBoard().keys().map((key) => GameBoard.getBoard().toReversed()[key][key]).every((marker) => marker == activePlayer.marker)) {
+                console.log("Win");
+                return;
+            }
+
+            // Need to check for a tie. If none of the spaces include null and all of the prior winning conditions were not met, then they must all be populated with a marker.
+            if(GameBoard.getBoard().every((row) => row.includes(null) != true)) {
+                console.log("Tie");
+            };
+
         }
 
         return { playTurn };
@@ -65,7 +87,7 @@
 const GameBoard = (function () {
     // A tic tac toe board can be represented as three rows and three comlumns.
     // Create Board with arrays. Each array inside of the main array represents a row and each of the elements in those arrays are the columns.
-    const board = [[null, null, null], [null, null, null], [null, null, null]];
+    const board = [["O", "X", "O"], ["X", "X", "O"], ["O", "O", "X"]];
 
     // Need a way to manipulate the data in each of the quadrants.
     const setQuadrant = (row, column, marker) => {
@@ -111,4 +133,20 @@ function createPlayer(name) {
     // let name = prompt("Please enter your name: ", "Player" )
 
     return { name };
+}
+
+function DOMController() {
+    const board = document.getElementById("board");
+
+    GameBoard.getBoard().forEach((row) => {
+        const rowElement = document.createElement("div");
+        rowElement.setAttribute("class","row");
+        for(const marker of row){
+            const markerElement = document.createElement("div");
+            markerElement.innerText = marker;
+            rowElement.appendChild(markerElement);
+        }
+        // rowElement.innerText = row;
+        board.appendChild(rowElement);
+    });
 }
