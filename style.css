@@ -14,8 +14,6 @@ body {
 .row {
     display: grid;
     grid-template-columns: auto auto auto;
-    /* align-items: center; */
-    /* justify-items: center; */
     text-align: center;
     font-size: 2em;
 }

@@ -1,13 +1,5 @@
-// TODO: Create Game, Board, and Player objects.
-
-// Game:
-    // Track the game's state - Who won/loss, Whose turn it is
-
     // We only need one gameboard. We'll use an IIFE.
     const GameController = (function (playerOne, playerTwo) {
-
-        // Create Players
-
 
         // Store player obects within a dictionary.
         const players = [{player: playerOne,
@@ -22,6 +14,10 @@
 
         const setActivePlayer = () => {
             activePlayer = activePlayer == players[0] ? players[1] : players[0];
+            return activePlayer;
+        }
+
+        const getActivePlayer = () => {
             return activePlayer;
         }
 
@@ -78,11 +74,8 @@
 
         }
 
-        return { playTurn };
+        return { playTurn, getActivePlayer };
     })(createPlayer(prompt("Please enter your name: ", "Player 1" )), createPlayer(prompt("Please enter your name: ", "Player 2" )));
-
-// Gameboard:
-    // Hold and keep record of spaces - If a space is occupied, then that space cannot be overidden. Responsible for drawing itself.
 
 const GameBoard = (function () {
     // A tic tac toe board can be represented as three rows and three comlumns.
@@ -125,9 +118,6 @@ const GameBoard = (function () {
 
 })();
 
-// Player:
-    // Keeps details for each player - Each person has either an 'X' or 'O' marker. We can use Player 1 and Player 2 for the player names.
-
 function createPlayer(name) {
 
     // let name = prompt("Please enter your name: ", "Player" )
@@ -137,17 +127,25 @@ function createPlayer(name) {
 
 function DOMController() {
     const board = document.getElementById("board");
+    board.addEventListener("click", (ev) => console.log(ev.target));
 
-    GameBoard.getBoard().forEach((row) => {
+    // Use the Array's entries method, which returns an iterator object. This will allow us to retrieve each row along with its corresponding index number.
+    for(const [rowIndex, row] of GameBoard.getBoard().entries()) {
         const rowElement = document.createElement("div");
         rowElement.setAttribute("class","row");
-        for(const marker of row){
-            const markerElement = document.createElement("div");
-            markerElement.setAttribute("class","rowText");
-            markerElement.innerText = marker;
-            rowElement.appendChild(markerElement);
+        // Use entries again on each of the arrays. This will return a space within each array that is mapped to its index number.
+        for(const [columnIndex, space] of row.entries()){
+            const spaceElement = document.createElement("div");
+            spaceElement.setAttribute("class","rowText");
+            // Use the index number obtained earlier to set the row number of each of the spaces in the first row. This is followed by setting the space's column as well.
+            spaceElement.setAttribute("data-row-number", rowIndex);
+            spaceElement.setAttribute("data-column-number", columnIndex);
+            // Populate the each space with the initial value of the board, which should be empty.
+            spaceElement.innerText = space;
+            rowElement.appendChild(spaceElement);
         }
-        // rowElement.innerText = row;
         board.appendChild(rowElement);
-    });
+    };
 }
+
+DOMController();
