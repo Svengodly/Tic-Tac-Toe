@@ -11,6 +11,13 @@ body {
     display: grid;
 }
 
+#resetButton {
+    display: block;
+    margin: auto;
+    margin-top: 50px;
+    visibility: hidden;
+}
+
 .row {
     display: grid;
     grid-template-columns: auto auto auto;

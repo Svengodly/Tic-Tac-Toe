@@ -1,3 +1,5 @@
+    // TODO: Add logic that prevents players from adding any more marks if the game is won or tied.
+
     // We only need one gameboard. We'll use an IIFE.
     const GameController = (function (playerOne, playerTwo) {
 
@@ -22,24 +24,25 @@
         }
 
         // Function that initiates a turn.
-        const playTurn = () => {
+        const playTurn = (row, column) => {
             console.log(`It's now ${activePlayer.player.name}'s turn.`);
+            console.log(row, column);
 
-            let row = prompt("Enter row");
-            let column = prompt("Enter column");
+            // let row = prompt("Enter row");
+            // let column = prompt("Enter column");
 
         // Need to check if space is already occupied.
-            while(GameBoard.getQuadrant(row, column) != null) {
+            if(GameBoard.getQuadrant(row, column) != null) {
                 console.log("That spot is already taken.");
-                row = prompt("Please enter a row.");
-                column = prompt("Please enter a column.");
+                return;
+                // row = prompt("Please enter a row.");
+                // column = prompt("Please enter a column.");
             }
 
             GameBoard.setQuadrant(row, column, activePlayer.marker);
             // Check for a winner here.
             checkWinTie();
             setActivePlayer();
-            GameBoard.displayBoard();
         }
 
         // Check for a winner or a tie.
@@ -50,6 +53,7 @@
             // Iterates through each row, checking to see if all marks are either "O" or "X." Checks horizontally.
             GameBoard.getBoard().forEach((row) => {if(row.every(element => element == activePlayer.marker)) {
                 console.log("Win");
+                GameController.isGameFinished = true;
                 return;
                 }
             });
@@ -57,6 +61,7 @@
             // Need to check if indices of each row contain the same marker: board[0][0] == board[1][0] == board[2][0]. Checks vertically.
             GameBoard.getBoard().keys().forEach((key) => {if(GameBoard.getBoard().map((row) => (row[key])).every((marker) => marker == activePlayer.marker)) {
                 console.log("Win");
+                GameController.isGameFinished = true;
                 return;
                 }
             });
@@ -64,23 +69,29 @@
             // Need to check diagonally.
             if(GameBoard.getBoard().keys().map((key) => GameBoard.getBoard()[key][key]).every((marker) => marker == activePlayer.marker) || GameBoard.getBoard().keys().map((key) => GameBoard.getBoard().toReversed()[key][key]).every((marker) => marker == activePlayer.marker)) {
                 console.log("Win");
+                GameController.isGameFinished = true;
                 return;
             }
 
             // Need to check for a tie. If none of the spaces include null and all of the prior winning conditions were not met, then they must all be populated with a marker.
             if(GameBoard.getBoard().every((row) => row.includes(null) != true)) {
                 console.log("Tie");
+                GameController.isGameFinished = true;
+                return;
             };
 
         }
 
-        return { playTurn, getActivePlayer };
+        // Boolean to track whether or not game is completed.
+        const isGameFinished = false;
+
+        return { playTurn, getActivePlayer, isGameFinished };
     })(createPlayer(prompt("Please enter your name: ", "Player 1" )), createPlayer(prompt("Please enter your name: ", "Player 2" )));
 
 const GameBoard = (function () {
     // A tic tac toe board can be represented as three rows and three comlumns.
     // Create Board with arrays. Each array inside of the main array represents a row and each of the elements in those arrays are the columns.
-    const board = [["O", "X", "O"], ["X", "X", "O"], ["O", "O", "X"]];
+    const board = [[null, null, null], [null, null, null], [null, null, null]];
 
     // Need a way to manipulate the data in each of the quadrants.
     const setQuadrant = (row, column, marker) => {
@@ -96,15 +107,6 @@ const GameBoard = (function () {
         return board;
     }
 
-    // We need a way to display the board also.
-    const displayBoard = () => {
-        for (const row of getBoard()) {
-            for (const marker of row) {
-                console.log(`---${marker}---`);
-            }
-        }
-    }
-
     // Board needs to have a way to reset itself for a new game.
 
     const clearBoard = () => {
@@ -114,7 +116,7 @@ const GameBoard = (function () {
         });
     }
 
-    return { setQuadrant, getQuadrant, getBoard, displayBoard, clearBoard };
+    return { setQuadrant, getQuadrant, getBoard, clearBoard };
 
 })();
 
@@ -127,7 +129,18 @@ function createPlayer(name) {
 
 function DOMController() {
     const board = document.getElementById("board");
-    board.addEventListener("click", (ev) => console.log(ev.target));
+
+    const resetButton = document.createElement("button");
+    resetButton.setAttribute("type", "button");
+    resetButton.setAttribute("id", "resetButton");
+    resetButton.innerText = "Play Again?";
+    resetButton.addEventListener("click", () => {
+        GameBoard.clearBoard();
+        updateDOMDisplay(GameBoard.getBoard().entries());
+        resetButton.style.visibility = "hidden";
+        GameController.isGameFinished = false;
+    });
+    board.after(resetButton);
 
     // Use the Array's entries method, which returns an iterator object. This will allow us to retrieve each row along with its corresponding index number.
     for(const [rowIndex, row] of GameBoard.getBoard().entries()) {
@@ -146,6 +159,25 @@ function DOMController() {
         }
         board.appendChild(rowElement);
     };
+
+    board.addEventListener("click", (ev) => {
+        console.log(ev.target);
+        //
+        GameController.playTurn(ev.target.dataset.rowNumber, ev.target.dataset.columnNumber);
+        if(GameController.isGameFinished){
+            resetButton.style.visibility = "visible";
+        }
+        updateDOMDisplay(GameBoard.getBoard().entries());
+    });
+
+    const updateDOMDisplay = (gameBoard) => {
+        for(const [rowIndex, row] of gameBoard){
+            for(const [columnIndex, space] of row.entries()){
+                board.children.item(rowIndex).children.item(columnIndex).innerText = space;
+            }
+        }
+    }
 }
+
 
 DOMController();
