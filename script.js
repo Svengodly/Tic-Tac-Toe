@@ -1,6 +1,5 @@
     // TODO:
         // Add a button that Starts/Restarts the game.
-            // Disable button if round is in progress.
         // Add way for players to enter their names.
 
     // We only need one gameboard. We'll use an IIFE.
@@ -40,7 +39,8 @@
             GameBoard.setQuadrant(row, column, activePlayer.marker);
             // Check for a winner here.
             checkWinTie();
-            setActivePlayer();
+            if (!GameController.isGameFinished){
+                setActivePlayer()};
         }
 
         // Check for a winner or a tie.
@@ -49,26 +49,31 @@
 
             // NOTE: The return keyword must be included with curly braces in an arrow function. Returns undefined if return keyword is not included with curly braces. Braces and return keyword not needed with one statement.
             // Iterates through each row, checking to see if all marks are either "O" or "X." Checks horizontally.
-            GameBoard.getBoard().forEach((row) => {if(row.every(element => element == activePlayer.marker)) {
+            for (row of GameBoard.getBoard()) {
+                if(row.every(element => element == activePlayer.marker)) {
                 console.log("Win");
                 GameController.isGameFinished = true;
-                return;
+                break;
                 }
-            });
+            };
 
             // Need to check if indices of each row contain the same marker: board[0][0] == board[1][0] == board[2][0]. Checks vertically.
-            GameBoard.getBoard().keys().forEach((key) => {if(GameBoard.getBoard().map((row) => (row[key])).every((marker) => marker == activePlayer.marker)) {
+            // NOTE: The forEach method does not support break statements. For...of loops do.
+            for (key of GameBoard.getBoard().keys()) {
+                if(GameBoard.getBoard().map((row) => (row[key])).every((marker) => marker == activePlayer.marker)) {
                 console.log("Win");
                 GameController.isGameFinished = true;
-                return;
+                break;
                 }
-            });
+            };
 
             // Need to check diagonally.
-            if(GameBoard.getBoard().keys().map((key) => GameBoard.getBoard()[key][key]).every((marker) => marker == activePlayer.marker) || GameBoard.getBoard().keys().map((key) => GameBoard.getBoard().toReversed()[key][key]).every((marker) => marker == activePlayer.marker)) {
+            for (key of GameBoard.getBoard().keys()){
+                if(GameBoard.getBoard().keys().map((key) => GameBoard.getBoard()[key][key]).every((marker) => marker == activePlayer.marker) || GameBoard.getBoard().keys().map((key) => GameBoard.getBoard().toReversed()[key][key]).every((marker) => marker == activePlayer.marker)) {
                 console.log("Win");
                 GameController.isGameFinished = true;
-                return;
+                break;
+                }
             };
 
             // Need to check for a tie. If none of the spaces include null and all of the prior winning conditions were not met, then they must all be populated with a marker.
@@ -77,7 +82,6 @@
                 GameController.isGameFinished = true;
                 return;
             };
-
         }
 
         // Boolean to track whether or not game is completed.
@@ -85,6 +89,7 @@
 
         return { playTurn, getActivePlayer, isGameFinished };
     })(createPlayer(prompt("Please enter your name: ", "Player 1" )), createPlayer(prompt("Please enter your name: ", "Player 2" )));
+    // createPlayer(prompt("Please enter your name: ", "Player 1" )), createPlayer(prompt("Please enter your name: ", "Player 2" ))
 
 const GameBoard = (function () {
     // A tic tac toe board can be represented as three rows and three comlumns.
@@ -118,6 +123,7 @@ const GameBoard = (function () {
 
 })();
 
+// Player factory function.
 function createPlayer(name) {
 
     // let name = prompt("Please enter your name: ", "Player" )
@@ -125,7 +131,7 @@ function createPlayer(name) {
     return { name };
 }
 
-function DOMController() {
+const DOMController = (function () {
     const board = document.getElementById("board");
 
     const startResetButton = document.createElement("button");
@@ -138,13 +144,21 @@ function DOMController() {
             updateDOMDisplay(GameBoard.getBoard().entries());
             startResetButton.innerText = "Round in Progress.";
             GameController.isGameFinished = false;
+            startResetButton.setAttribute( "disabled","");
         }
         else{
-
+            if(board.style.pointerEvents != "auto"){
+                board.style.pointerEvents = "auto";
+            };
+            startResetButton.innerText = "Round in Progress.";
+            startResetButton.setAttribute( "disabled","");
         }
     });
 
     board.after(startResetButton);
+
+    const displayWinner = document.createElement("div");
+    displayWinner.setAttribute("class", "winner");
 
     // Use the Array's entries method, which returns an iterator object. This will allow us to retrieve each row along with its corresponding index number.
     for(const [rowIndex, row] of GameBoard.getBoard().entries()) {
@@ -181,7 +195,10 @@ function DOMController() {
         updateDOMDisplay(GameBoard.getBoard().entries());
 
         if(GameController.isGameFinished){
-            startResetButton.innerText = "Play Again?";
+            startResetButton.innerText = "Play Again";
+            startResetButton.removeAttribute("disabled");
+            GameBoard.getBoard().every((row) => row.includes(null)) != true ? displayWinner.innerText = `It's a tie!` : displayWinner.innerText = `${GameController.getActivePlayer().player.name} wins!`;
+            board.after(displayWinner);
         }
     });
 
@@ -192,6 +209,4 @@ function DOMController() {
             }
         }
     }
-}
-
-DOMController();
+})();
