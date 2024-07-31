@@ -2,31 +2,48 @@ body {
     height: 100vh;
 }
 
+h1, footer {
+    text-align: center;
+}
+
+main {
+    height: 75%;
+}
+
 #board {
-    background-color: hsl(170, 50%, 50%);
-    height: 50%;
+    background-color: hsl(0, 0%, 0%);
+    height: inherit;
     width: 50%;
     margin: auto;
     border: solid 3px black;
     display: grid;
+    /* This prevents the rows from resizing when a marker is placed. */
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
 }
 
-#resetButton {
+#startResetButton {
     display: block;
     margin: auto;
     margin-top: 50px;
-    visibility: hidden;
 }
 
 .row {
     display: grid;
-    grid-template-columns: auto auto auto;
+    /* This prevents the rows from resizing when a marker is placed. */
+    grid-template-columns: repeat(3, 1fr);
     text-align: center;
     font-size: 2em;
+    gap: 10px;
 }
 
-.rowText {
+.space {
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: blue;
+}
+
+.space:hover {
+    background-color: aqua;
 }

@@ -1,4 +1,7 @@
-    // TODO: Add logic that prevents players from adding any more marks if the game is won or tied.
+    // TODO:
+        // Add a button that Starts/Restarts the game.
+            // Disable button if round is in progress.
+        // Add way for players to enter their names.
 
     // We only need one gameboard. We'll use an IIFE.
     const GameController = (function (playerOne, playerTwo) {
@@ -28,15 +31,10 @@
             console.log(`It's now ${activePlayer.player.name}'s turn.`);
             console.log(row, column);
 
-            // let row = prompt("Enter row");
-            // let column = prompt("Enter column");
-
         // Need to check if space is already occupied.
             if(GameBoard.getQuadrant(row, column) != null) {
                 console.log("That spot is already taken.");
                 return;
-                // row = prompt("Please enter a row.");
-                // column = prompt("Please enter a column.");
             }
 
             GameBoard.setQuadrant(row, column, activePlayer.marker);
@@ -71,7 +69,7 @@
                 console.log("Win");
                 GameController.isGameFinished = true;
                 return;
-            }
+            };
 
             // Need to check for a tie. If none of the spaces include null and all of the prior winning conditions were not met, then they must all be populated with a marker.
             if(GameBoard.getBoard().every((row) => row.includes(null) != true)) {
@@ -130,17 +128,23 @@ function createPlayer(name) {
 function DOMController() {
     const board = document.getElementById("board");
 
-    const resetButton = document.createElement("button");
-    resetButton.setAttribute("type", "button");
-    resetButton.setAttribute("id", "resetButton");
-    resetButton.innerText = "Play Again?";
-    resetButton.addEventListener("click", () => {
-        GameBoard.clearBoard();
-        updateDOMDisplay(GameBoard.getBoard().entries());
-        resetButton.style.visibility = "hidden";
-        GameController.isGameFinished = false;
+    const startResetButton = document.createElement("button");
+    startResetButton.setAttribute("type", "button");
+    startResetButton.setAttribute("id", "startResetButton");
+    startResetButton.innerText = "Start Round";
+    startResetButton.addEventListener("click", () => {
+        if(GameController.isGameFinished){
+            GameBoard.clearBoard();
+            updateDOMDisplay(GameBoard.getBoard().entries());
+            startResetButton.innerText = "Round in Progress.";
+            GameController.isGameFinished = false;
+        }
+        else{
+
+        }
     });
-    board.after(resetButton);
+
+    board.after(startResetButton);
 
     // Use the Array's entries method, which returns an iterator object. This will allow us to retrieve each row along with its corresponding index number.
     for(const [rowIndex, row] of GameBoard.getBoard().entries()) {
@@ -149,7 +153,7 @@ function DOMController() {
         // Use entries again on each of the arrays. This will return a space within each array that is mapped to its index number.
         for(const [columnIndex, space] of row.entries()){
             const spaceElement = document.createElement("div");
-            spaceElement.setAttribute("class","rowText");
+            spaceElement.setAttribute("class","space");
             // Use the index number obtained earlier to set the row number of each of the spaces in the first row. This is followed by setting the space's column as well.
             spaceElement.setAttribute("data-row-number", rowIndex);
             spaceElement.setAttribute("data-column-number", columnIndex);
@@ -162,12 +166,23 @@ function DOMController() {
 
     board.addEventListener("click", (ev) => {
         console.log(ev.target);
-        //
-        GameController.playTurn(ev.target.dataset.rowNumber, ev.target.dataset.columnNumber);
-        if(GameController.isGameFinished){
-            resetButton.style.visibility = "visible";
+
+        // Handles cases where players click on the boarder of the Gameboard.
+        if(ev.target.id == "board" || ev.target.className == "row"){
+            return;
         }
+
+        // Prevents any additional marks to the board if a player has won.
+        if(GameController.isGameFinished){
+            return;
+        }
+
+        GameController.playTurn(ev.target.dataset.rowNumber, ev.target.dataset.columnNumber);
         updateDOMDisplay(GameBoard.getBoard().entries());
+
+        if(GameController.isGameFinished){
+            startResetButton.innerText = "Play Again?";
+        }
     });
 
     const updateDOMDisplay = (gameBoard) => {
@@ -178,6 +193,5 @@ function DOMController() {
         }
     }
 }
-
 
 DOMController();
