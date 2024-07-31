@@ -140,6 +140,7 @@ const DOMController = (function () {
     startResetButton.innerText = "Start Round";
     startResetButton.addEventListener("click", () => {
         if(GameController.isGameFinished){
+            document.querySelector("main").removeChild(displayWinner);
             GameBoard.clearBoard();
             updateDOMDisplay(GameBoard.getBoard().entries());
             startResetButton.innerText = "Round in Progress.";
@@ -197,7 +198,7 @@ const DOMController = (function () {
         if(GameController.isGameFinished){
             startResetButton.innerText = "Play Again";
             startResetButton.removeAttribute("disabled");
-            GameBoard.getBoard().every((row) => row.includes(null)) != true ? displayWinner.innerText = `It's a tie!` : displayWinner.innerText = `${GameController.getActivePlayer().player.name} wins!`;
+            GameBoard.getBoard().some((row) => row.includes(null)) == true ? displayWinner.innerText = `${GameController.getActivePlayer().player.name} wins!` : displayWinner.innerText = `It's a tie!`;
             board.after(displayWinner);
         }
     });
